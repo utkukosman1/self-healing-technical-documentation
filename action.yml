@@ -1,0 +1,80 @@
+name: DocSentry
+description: Detects stale documentation caused by code changes, flags discrepancies, and optionally opens a PR with corrected docs.
+
+branding:
+  icon: file-text
+  color: blue
+
+inputs:
+  openai-api-key:
+    description: OpenAI API key for embeddings and LLM analysis.
+    required: true
+  github-token:
+    description: GitHub token for posting comments and creating PRs.
+    required: false
+    default: ${{ github.token }}
+  mode:
+    description: 'check (flag only) or fix (open docs PR).'
+    required: false
+    default: check
+  docs-glob:
+    description: Comma-separated glob patterns for documentation files.
+    required: false
+    default: README.md,docs/**/*.md
+  chat-model:
+    description: OpenAI model used for staleness verdicts and rewrites.
+    required: false
+    default: gpt-4o-mini
+  embedding-model:
+    description: OpenAI model used for embeddings.
+    required: false
+    default: text-embedding-3-small
+  max-sections:
+    description: Maximum number of doc sections to analyze per run (cost cap).
+    required: false
+    default: "20"
+  fail-on-stale:
+    description: Fail the check when stale docs are found (check mode only).
+    required: false
+    default: "false"
+  reviewer:
+    description: GitHub username to auto-request review from (fix mode only).
+    required: false
+    default: ""
+
+outputs:
+  result:
+    description: Summary of the run (counts of analyzed/ok/stale sections).
+    value: ${{ steps.run.outputs.result }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: Install dependencies
+      shell: bash
+      run: pip install -r requirements.txt
+
+    - name: Run DocSentry
+      id: run
+      shell: bash
+      env:
+        DOCSENTRY_OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+        DOCSENTRY_GITHUB_TOKEN: ${{ inputs.github-token }}
+        DOCSENTRY_MODE: ${{ inputs.mode }}
+        DOCSENTRY_DOCS_GLOB: ${{ inputs.docs-glob }}
+        DOCSENTRY_CHAT_MODEL: ${{ inputs.chat-model }}
+        DOCSENTRY_EMBEDDING_MODEL: ${{ inputs.embedding-model }}
+        DOCSENTRY_MAX_SECTIONS: ${{ inputs.max-sections }}
+        DOCSENTRY_FAIL_ON_STALE: ${{ inputs.fail-on-stale }}
+        DOCSENTRY_REVIEWER: ${{ inputs.reviewer }}
+      run: python -m src.main

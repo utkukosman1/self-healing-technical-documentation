@@ -1,0 +1,20 @@
+name: DocSentry self-check
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docsentry:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          mode: check
