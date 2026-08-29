@@ -62,12 +62,13 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: pip install -r requirements.txt
+      run: pip install -r "$GITHUB_ACTION_PATH/requirements.txt"
 
     - name: Run DocSentry
       id: run
       shell: bash
       env:
+        PYTHONPATH: ${{ github.action_path }}
         DOCSENTRY_OPENAI_API_KEY: ${{ inputs.openai-api-key }}
         DOCSENTRY_GITHUB_TOKEN: ${{ inputs.github-token }}
         DOCSENTRY_MODE: ${{ inputs.mode }}
