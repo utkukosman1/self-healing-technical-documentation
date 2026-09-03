@@ -24,7 +24,7 @@ inputs:
   chat-model:
     description: OpenAI model used for staleness verdicts and rewrites.
     required: false
-    default: gpt-4o-mini
+    default: gpt-4.1-mini
   embedding-model:
     description: OpenAI model used for embeddings.
     required: false

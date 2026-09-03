@@ -29,7 +29,7 @@ _IGNORED_DIRS = {".git", "node_modules", "__pycache__", ".pytest_cache", ".venv"
 _DEFAULTS = {
     "mode": "check",
     "docs_glob": "README.md,docs/**/*.md",
-    "chat_model": "gpt-4o-mini",
+    "chat_model": "gpt-4.1-mini",
     "embedding_model": "text-embedding-3-small",
     "max_sections": "20",
     "fail_on_stale": "false",
