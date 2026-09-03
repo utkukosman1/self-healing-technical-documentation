@@ -78,6 +78,11 @@ jobs:
 | `check` | PR events | Comments the PR with stale sections, evidence, and suggested rewrites. With `fail-on-stale: true`, the check fails. |
 | `fix` | Push to main / manual dispatch | Rewrites the stale sections in-place, commits on a new branch, opens a PR, and requests your review. |
 
+> **Fix mode requirement:** GitHub blocks workflow-created PRs by default.
+> Enable **Settings → Actions → General → "Allow GitHub Actions to create and
+> approve pull requests"**, or fix-mode PRs will fail with
+> `GitHub Actions is not permitted to create or approve pull requests`.
+
 ### Inputs
 
 | Input | Default | Description |
