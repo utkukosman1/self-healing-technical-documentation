@@ -58,3 +58,43 @@ def matches_globs(path: str, glob_patterns: str) -> bool:
     """True if path matches any of the comma-separated glob patterns."""
     patterns = [p.strip() for p in glob_patterns.split(",") if p.strip()]
     return any(fnmatch.fnmatchcase(path, p) for p in patterns)
+
+
+def _heading_positions(text: str) -> list[tuple[int, int, str]]:
+    """Line index, level, and title of each heading outside code fences."""
+    headings: list[tuple[int, int, str]] = []
+    in_fence = False
+    for i, line in enumerate(text.splitlines()):
+        if _FENCE_RE.match(line):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        match = _HEADING_RE.match(line)
+        if match:
+            headings.append((i, len(match.group(1)), match.group(2).strip()))
+    return headings
+
+
+def replace_section(file_text: str, title: str, level: int, new_text: str) -> str | None:
+    """Replace one raw section (heading at `level` titled `title`) with new_text.
+
+    Returns the updated file text, or None if the section cannot be located
+    unambiguously, so a failed match never corrupts the file.
+    """
+    lines = file_text.splitlines()
+    headings = _heading_positions(file_text)
+
+    if level == 0:
+        start, end = 0, headings[0][0] if headings else len(lines)
+    else:
+        starts = [i for i, lv, t in headings if (lv, t) == (level, title.strip())]
+        if len(starts) != 1:
+            return None
+        start = starts[0]
+        end = next((i for i, _lv, _t in headings if i > start), len(lines))
+
+    updated = "\n".join(lines[:start] + new_text.splitlines() + lines[end:])
+    if file_text.endswith("\n") and not updated.endswith("\n"):
+        updated += "\n"
+    return updated

@@ -1,4 +1,4 @@
-from src.docs_parser import DocSection, chunk_markdown, matches_globs
+from src.docs_parser import DocSection, chunk_markdown, matches_globs, replace_section
 
 
 class TestChunkMarkdown:
@@ -57,3 +57,41 @@ class TestMatchesGlobs:
 
     def test_whitespace_in_patterns(self):
         assert matches_globs("docs/a.md", " docs/*.md , README.md ")
+
+
+class TestReplaceSection:
+    TEXT = "# Title\n\nintro\n\n## A\nA body\n\n## B\nB body\n"
+
+    def test_replaces_only_target_section(self):
+        out = replace_section(self.TEXT, "A", 2, "## A\nNEW")
+        assert out == "# Title\n\nintro\n\n## A\nNEW\n## B\nB body\n"
+
+    def test_missing_title_returns_none(self):
+        assert replace_section(self.TEXT, "Nope", 2, "x") is None
+
+    def test_duplicate_title_returns_none(self):
+        text = "## A\none\n## B\ntwo\n## A\nthree\n"
+        assert replace_section(text, "A", 2, "x") is None
+
+    def test_preamble_replacement(self):
+        out = replace_section(self.TEXT, "", 0, "NEW PREAMBLE")
+        assert out.startswith("NEW PREAMBLE\n# Title")
+
+    def test_last_section_to_eof(self):
+        out = replace_section(self.TEXT, "B", 2, "## B\nnew B")
+        assert out.endswith("## B\nnew B\n")
+
+    def test_heading_lookalike_in_fence_not_a_boundary(self):
+        text = "## A\nbody\n```\n## fake\n```\n## B\nB body\n"
+        out = replace_section(text, "A", 2, "## A\nnew")
+        assert out == "## A\nnew\n## B\nB body\n"
+
+    def test_removal_with_empty_rewrite(self):
+        out = replace_section(self.TEXT, "A", 2, "")
+        assert "A body" not in out
+        assert "## B" in out
+
+    def test_trailing_newline_preserved(self):
+        text = "# T\ncontent\n"
+        out = replace_section(text, "T", 1, "# T\nnew")
+        assert out.endswith("\n")
