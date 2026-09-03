@@ -21,7 +21,7 @@ class TestConfig:
         config = load_config({})
         assert config["mode"] == "check"
         assert config["docs_glob"] == "README.md,docs/**/*.md"
-        assert config["chat_model"] == "gpt-4o-mini"
+        assert config["chat_model"] == "gpt-4.1-mini"
         assert config["fail_on_stale"] == "false"
 
     def test_overrides(self):

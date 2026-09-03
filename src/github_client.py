@@ -5,20 +5,25 @@ from __future__ import annotations
 import os
 import re
 import subprocess
+import sys
 
 _PR_REF_RE = re.compile(r"refs/pull/(\d+)")
 
 
 def _run_gh(args: list[str], token: str, stdin: str | None = None) -> str:
     env = {**os.environ, "GH_TOKEN": token}
-    result = subprocess.run(
-        ["gh", *args],
-        input=stdin,
-        capture_output=True,
-        text=True,
-        env=env,
-        check=True,
-    )
+    try:
+        result = subprocess.run(
+            ["gh", *args],
+            input=stdin,
+            capture_output=True,
+            text=True,
+            env=env,
+            check=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        print(f"gh command failed: {exc.stderr.strip()}", file=sys.stderr)
+        raise
     return result.stdout
 
 
@@ -49,13 +54,17 @@ def post_pr_comment(pr_number: int, body: str, token: str) -> None:
 
 
 def _run_git(args: list[str], workspace: str) -> None:
-    subprocess.run(
-        ["git", *args],
-        cwd=workspace,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
+    try:
+        subprocess.run(
+            ["git", *args],
+            cwd=workspace,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        print(f"git command failed: {exc.stderr.strip()}", file=sys.stderr)
+        raise
 
 
 def create_fix_pr(
