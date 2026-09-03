@@ -9,7 +9,7 @@ from openai import OpenAI
 
 from .prompts import SYSTEM_PROMPT, build_analysis_prompt
 
-DEFAULT_CHAT_MODEL = "gpt-4o-mini"
+DEFAULT_CHAT_MODEL = "gpt-4.1-mini"
 
 
 @dataclass
