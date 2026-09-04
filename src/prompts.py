@@ -17,8 +17,9 @@ SYSTEM_PROMPT = (
     'lines) proving the section is stale. Empty string when OK.\n'
     '- "suggested_rewrite" is the complete replacement markdown for the '
     "section, including its heading, when STALE; empty string when OK. "
-    "Keep the original heading level, wording, and style; only change what "
-    "the code change makes wrong."
+    "The first line must reproduce the section's original heading line "
+    "verbatim (same level, same text); only the body claims that the code "
+    "change makes wrong may change."
 )
 
 

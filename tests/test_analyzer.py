@@ -100,3 +100,4 @@ class TestBuildAnalysisPrompt:
     def test_system_prompt_covers_cosmetic_diffs(self):
         assert "cosmetic" in SYSTEM_PROMPT
         assert '"status", "evidence", "suggested_rewrite"' in SYSTEM_PROMPT
+        assert "verbatim" in SYSTEM_PROMPT
