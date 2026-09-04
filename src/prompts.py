@@ -19,7 +19,9 @@ SYSTEM_PROMPT = (
     "section, including its heading, when STALE; empty string when OK. "
     "The first line must reproduce the section's original heading line "
     "verbatim (same level, same text); only the body claims that the code "
-    "change makes wrong may change."
+    "change makes wrong may change. Make a minimal repair: update stale "
+    "claims in place and preserve every heading, table, code block, and "
+    "note that is still accurate; never delete content to avoid updating it."
 )
 
 

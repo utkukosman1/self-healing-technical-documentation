@@ -101,3 +101,4 @@ class TestBuildAnalysisPrompt:
         assert "cosmetic" in SYSTEM_PROMPT
         assert '"status", "evidence", "suggested_rewrite"' in SYSTEM_PROMPT
         assert "verbatim" in SYSTEM_PROMPT
+        assert "never delete content to avoid updating it" in SYSTEM_PROMPT

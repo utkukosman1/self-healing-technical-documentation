@@ -46,6 +46,8 @@ name: DocSentry
 
 on:
   pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       mode:
@@ -55,10 +57,11 @@ on:
         default: check
 
 jobs:
-  docsentry:
+  check:
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode != 'fix')
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
@@ -67,8 +70,29 @@ jobs:
       - uses: utkukosman1/self-healing-technical-documentation@main
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          mode: ${{ github.event.inputs.mode || 'check' }}
+          mode: check
           reviewer: your-github-username # auto-review-request on fix PRs
+
+  fix:
+    if: >-
+      (github.event_name == 'push' && vars.DOCSENTRY_AUTO_HEAL == 'true') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'fix')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: docsentry-fix
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: utkukosman1/self-healing-technical-documentation@main
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          mode: fix
+          reviewer: your-github-username
 ```
 
 ### Modes
