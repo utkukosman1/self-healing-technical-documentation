@@ -29,6 +29,8 @@ _IGNORED_DIRS = {".git", "node_modules", "__pycache__", ".pytest_cache", ".venv"
 _DEFAULTS = {
     "mode": "check",
     "docs_glob": "README.md,docs/**/*.md",
+    # Matches action.yml. If this default changes, the documented default
+    # in README.md (Inputs table) must change with it.
     "chat_model": "gpt-4.1-mini",
     "embedding_model": "text-embedding-3-small",
     "max_sections": "20",
