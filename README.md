@@ -67,7 +67,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # required: DocSentry diffs base...head
-      - uses: utkukosman1/self-healing-technical-documentation@main
+      - uses: utkukosman1/self-healing-technical-documentation@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           mode: check
@@ -88,7 +88,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: utkukosman1/self-healing-technical-documentation@main
+      - uses: utkukosman1/self-healing-technical-documentation@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           mode: fix
