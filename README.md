@@ -83,7 +83,7 @@ jobs:
 > approve pull requests"**, or fix-mode PRs will fail with
 > `GitHub Actions is not permitted to create or approve pull requests`.
 
-Inputs
+### Inputs
 
 | Input | Default | Description |
 |---|---|---|
@@ -96,6 +96,7 @@ Inputs
 | `max-sections` | `20` | Cost cap: max doc sections analyzed per run |
 | `fail-on-stale` | `false` | Fail the check when stale docs are found |
 | `reviewer` | — | GitHub username auto-requested for review on fix PRs |
+
 ### Outputs
 
 | Output | Description |
