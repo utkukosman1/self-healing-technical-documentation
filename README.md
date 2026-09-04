@@ -83,6 +83,39 @@ jobs:
 > approve pull requests"**, or fix-mode PRs will fail with
 > `GitHub Actions is not permitted to create or approve pull requests`.
 
+### Automatic healing (opt-in)
+
+By default DocSentry only *flags* on pull requests; merging changes nothing
+by itself. To have fix PRs open automatically after every merge to main:
+
+1. Add a push trigger with a guarded fix job:
+
+   ```yaml
+   on:
+     pull_request:
+     push:
+       branches: [main]
+
+   jobs:
+     check:
+       if: github.event_name == 'pull_request'
+       # ... mode: check ...
+     fix:
+       if: github.event_name == 'push' && vars.DOCSENTRY_AUTO_HEAL == 'true'
+       concurrency:
+         group: docsentry-fix
+         cancel-in-progress: false
+       # ... mode: fix, reviewer: you ...
+   ```
+
+2. Create the switch: **Settings → Secrets and variables → Actions →
+   Variables** → new variable `DOCSENTRY_AUTO_HEAL` = `true`.
+
+Delete the variable (or set anything else) to turn auto-heal off — no file
+changes needed. Manual dispatch keeps working either way. Merging the bot's
+own docs PRs is loop-safe: that diff is docs-only, so the follow-up run
+exits quietly.
+
 ### Inputs
 
 | Input | Default | Description |
