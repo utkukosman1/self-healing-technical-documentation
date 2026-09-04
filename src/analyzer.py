@@ -9,6 +9,8 @@ from openai import OpenAI
 
 from .prompts import SYSTEM_PROMPT, build_analysis_prompt
 
+# Default chat model for verdicts and rewrites. If this changes, the
+# documented default in README.md (Inputs table) must change with it.
 DEFAULT_CHAT_MODEL = "gpt-4.1-mini"
 
 
