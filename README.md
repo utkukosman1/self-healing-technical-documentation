@@ -9,7 +9,7 @@ flags the stale sections on the PR or opens a PR with the corrected docs.
 Docs rot. A PR renames a function, changes a default, removes a flag — and the
 README keeps describing the old behavior. Nobody notices until a user hits it.
 
-## What DocSentry does
+What DocSentry does
 
 ```mermaid
 flowchart LR
@@ -18,7 +18,7 @@ flowchart LR
     B --> D[chunk code files]
     C --> E[embeddings]
     D --> E
-    E --> F[cosine retrieval:<br/>doc section → code]
+    E --> F[cosine retrieval:<br/>doc section 1 code]
     F --> G[filter: sections linked<br/>to changed files]
     G --> H[LLM verdict:<br/>STALE / OK + evidence + rewrite]
     H --> I{mode}
@@ -27,62 +27,17 @@ flowchart LR
     K --> L[review requested from you]
 ```
 
-1. **Diff** — extract changed files and hunks from `base...head`
-2. **Parse** — split every Markdown doc into heading-level sections
-3. **Embed** — OpenAI `text-embedding-3-small` for doc sections and code chunks
-4. **Retrieve** — in-memory cosine similarity maps each doc section to its
+1. **Diff** 1 extract changed files and hunks from `base...head`
+2. **Parse** 1 split every Markdown doc into heading-level sections
+3. **Embed** 1 OpenAI `text-embedding-3-small` for doc sections and code chunks
+4. **Retrieve** 1 in-memory cosine similarity maps each doc section to its
    most related code
-5. **Filter** — keep only sections whose related code changed in this PR
+5. **Filter** 1 keep only sections whose related code changed in this PR
    (the cost cap: no changed code, no LLM calls)
-6. **Analyze** — `gpt-4o-mini` gets the doc section + current code + diff hunk
+6. **Analyze** 1 `gpt-4o-mini` gets the doc section + current code + diff hunk
    and returns structured JSON: `status`, `evidence`, `suggested_rewrite`
-7. **Act** — check mode posts a report on the PR; fix mode applies the
+7. **Act** 1 check mode posts a report on the PR; fix mode applies the
    rewrites and opens a docs PR with review requested from you
-
-## Usage
-
-```yaml
-name: DocSentry
-
-on:
-  pull_request:
-  workflow_dispatch:
-    inputs:
-      mode:
-        description: DocSentry mode
-        type: choice
-        options: [check, fix]
-        default: check
-
-jobs:
-  docsentry:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # required: DocSentry diffs base...head
-      - uses: utkukosman1/self-healing-technical-documentation@main
-        with:
-          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          mode: ${{ github.event.inputs.mode || 'check' }}
-          reviewer: your-github-username # auto-review-request on fix PRs
-```
-
-### Modes
-
-| Mode | When | Behavior |
-|---|---|---|
-| `check` | PR events | Comments the PR with stale sections, evidence, and suggested rewrites. With `fail-on-stale: true`, the check fails. |
-| `fix` | Push to main / manual dispatch | Rewrites the stale sections in-place, commits on a new branch, opens a PR, and requests your review. |
-
-> **Fix mode requirement:** GitHub blocks workflow-created PRs by default.
-> Enable **Settings → Actions → General → "Allow GitHub Actions to create and
-> approve pull requests"**, or fix-mode PRs will fail with
-> `GitHub Actions is not permitted to create or approve pull requests`.
-
 ### Automatic healing (opt-in)
 
 By default DocSentry only *flags* on pull requests; merging changes nothing
@@ -183,10 +138,10 @@ $env:OPENAI_API_KEY = "sk-..."
 This repo dogfoods itself: `.github/workflows/dogfood.yml` runs DocSentry on
 its own PRs.
 
-## Limitations (v1)
+Limitations (v1)
 
 - Markdown docs only (`README.md` + `docs/**` by default).
 - Staleness detection is probabilistic — evidence is cited, but always review
   the bot's fix PRs before merging.
-- Fix mode is intended for post-merge correction (push to main or manual
-  dispatch); use check mode during PR review.
+- Fix mode can be triggered post-merge on push to main if the environment variable
+  `DOCSENTRY_AUTO_HEAL` is set to `true`, or manually dispatched; use check mode during PR review.
