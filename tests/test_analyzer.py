@@ -2,7 +2,7 @@ import json
 from types import SimpleNamespace
 
 from src.analyzer import Verdict, analyze
-from src.prompts import build_analysis_prompt
+from src.prompts import SYSTEM_PROMPT, build_analysis_prompt
 
 
 class FakeCompletionsEndpoint:
@@ -96,3 +96,7 @@ class TestBuildAnalysisPrompt:
         assert "## S" in prompt
         assert "def f()" in prompt
         assert "@@ -1 +1 @@" in prompt
+
+    def test_system_prompt_covers_cosmetic_diffs(self):
+        assert "cosmetic" in SYSTEM_PROMPT
+        assert '"status", "evidence", "suggested_rewrite"' in SYSTEM_PROMPT

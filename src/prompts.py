@@ -11,6 +11,8 @@ SYSTEM_PROMPT = (
     '- JSON keys: "status", "evidence", "suggested_rewrite".\n'
     '- "status" is "STALE" only when the code change contradicts or '
     'invalidates a specific claim in the section; otherwise "OK".\n'
+    '- "status" is "OK" when the diff is purely cosmetic (whitespace, '
+    'comments, formatting) with no behavioral change.\n'
     '- "evidence" cites the exact code (function names, behavior, or diff '
     'lines) proving the section is stale. Empty string when OK.\n'
     '- "suggested_rewrite" is the complete replacement markdown for the '
