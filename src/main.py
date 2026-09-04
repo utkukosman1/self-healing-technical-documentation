@@ -269,7 +269,7 @@ def run(
     mode = config["mode"]
     if mode not in ("check", "fix"):
         print(f"DocSentry: unknown mode '{mode}'")
-        return 0
+        return 1
 
     embed_client = (
         make_embed_client or

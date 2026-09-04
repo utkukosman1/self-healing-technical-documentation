@@ -174,6 +174,11 @@ class TestRunEndToEnd:
         assert code == 0
         assert "only documentation changed" in capsys.readouterr().out
 
+    def test_unknown_mode_fails(self, capsys):
+        code = run(self._config(mode="chek"), {})
+        assert code == 1
+        assert "unknown mode 'chek'" in capsys.readouterr().out
+
 
 class TestFixModeEndToEnd:
     def _config(self):
