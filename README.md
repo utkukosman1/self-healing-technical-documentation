@@ -91,7 +91,7 @@ jobs:
 | `github-token` | `github.token` | Token for PR comments / fix PRs |
 | `mode` | `check` | `check` or `fix` |
 | `docs-glob` | `README.md,docs/**/*.md` | Comma-separated globs for documentation files |
-| `chat-model` | `gpt-4o-mini` | Model for staleness verdicts and rewrites |
+| `chat-model` | `gpt-4.1-mini` | Model for staleness verdicts and rewrites |
 | `embedding-model` | `text-embedding-3-small` | Model for embeddings |
 | `max-sections` | `20` | Cost cap: max doc sections analyzed per run |
 | `fail-on-stale` | `false` | Fail the check when stale docs are found |
