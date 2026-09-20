@@ -55,8 +55,14 @@ class AnalysisResult:
 def load_config(env: Mapping[str, str] | None = None) -> dict[str, str]:
     if env is None:
         env = os.environ
+    jev_provider = env.get("DOCSENTRY_JEV_PROVIDER", "typesafe").strip().lower() or "typesafe"
+    default_jev_model = "typesafe/jev-1.13" if jev_provider == "openrouter" else "jev-latest"
     return {
         "openai_api_key": env.get("DOCSENTRY_OPENAI_API_KEY", ""),
+        "typesafe_api_key": env.get("DOCSENTRY_TYPESAFE_API_KEY", ""),
+        "openrouter_api_key": env.get("DOCSENTRY_OPENROUTER_API_KEY", ""),
+        "jev_provider": jev_provider,
+        "jev_model": env.get("DOCSENTRY_JEV_MODEL", "").strip() or default_jev_model,
         "github_token": env.get("DOCSENTRY_GITHUB_TOKEN", ""),
         "mode": env.get("DOCSENTRY_MODE", _DEFAULTS["mode"]),
         "docs_glob": env.get("DOCSENTRY_DOCS_GLOB", _DEFAULTS["docs_glob"]),
@@ -269,8 +275,15 @@ def run(
     open_pr=create_fix_pr,
 ) -> int:
     mode = config["mode"]
+    if mode == "review":
+        from .review import run_review
+        return run_review(config, env)
     if mode not in ("check", "fix"):
         print(f"DocSentry: unknown mode '{mode}'")
+        return 1
+
+    if not config["openai_api_key"]:
+        print("DocSentry: openai-api-key is required for check/fix modes")
         return 1
 
     embed_client = (
