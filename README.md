@@ -43,7 +43,7 @@ flowchart LR
 7. **Act** — check mode posts a report on the PR; fix mode applies the
    rewrites and opens a docs PR with review requested from you
 
-## Usage
+Usage
 
 ```yaml
 name: DocSentry
@@ -57,12 +57,12 @@ on:
       mode:
         description: DocSentry mode
         type: choice
-        options: [check, fix]
+        options: [check, fix, review]
         default: check
 
 jobs:
   check:
-    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode != 'fix')
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode != 'fix' && github.event.inputs.mode != 'review')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -97,8 +97,28 @@ jobs:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           mode: fix
           reviewer: your-github-username
-```
 
+  review:
+    if: github.event_name == 'pull_request_target' && !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    concurrency:
+      group: docsentry-review-${{ github.repository }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: ./
+        with:
+          mode: review
+          jev-provider: openrouter
+          openrouter-api-key: ${{ secrets.OPENROUTER_API_KEY }}
+```
 ### Modes
 
 | Mode | When | Behavior |
@@ -219,12 +239,11 @@ a required branch-protection check.** Existing documentation jobs are independen
 > approve pull requests"**, or fix-mode PRs will fail with
 > `GitHub Actions is not permitted to create or approve pull requests`.
 
-### Automatic healing (opt-in)
+Automatic healing (opt-in)
 
-By default DocSentry only *flags* on pull requests; merging changes nothing
-by itself. To have fix PRs open automatically after every merge to main:
+The current DocSentry workflow has changed from previous samples. It now uses `pull_request_target` events for triggering review jobs and does not include a push trigger or an automatic fix job based on the `DOCSENTRY_AUTO_HEAL` variable. By default DocSentry only *flags* on pull requests; merging changes nothing by itself. If you want to configure automatic healing with fix PRs that open after merges to main, you need to add a push trigger with a guarded fix job manually, as the current included workflow does not provide this.
 
-1. Add a push trigger with a guarded fix job:
+1. Add a push trigger with a guarded fix job, resembling the following example:
 
    ```yaml
    on:
@@ -244,32 +263,9 @@ by itself. To have fix PRs open automatically after every merge to main:
        # ... mode: fix, reviewer: you ...
    ```
 
-2. Create the switch: **Settings → Secrets and variables → Actions →
-   Variables** → new variable `DOCSENTRY_AUTO_HEAL` = `true`.
+2. Create the switch: **Settings → Secrets and variables → Actions → Variables** → new variable `DOCSENTRY_AUTO_HEAL` = `true`.
 
-Delete the variable (or set anything else) to turn auto-heal off — no file
-changes needed. Manual dispatch keeps working either way. Merging the bot's
-own docs PRs is loop-safe: that diff is docs-only, so the follow-up run
-exits quietly.
-
-### Inputs
-
-| Input | Default | Description |
-|---|---|---|
-| `openai-api-key` | — | Required for `check`/`fix`, stored in `secrets.OPENAI_API_KEY` |
-| `typesafe-api-key` | — | Required for `review` with provider `typesafe`, stored in `secrets.TYPESAFE_API_KEY` |
-| `openrouter-api-key` | — | Required for `review` with provider `openrouter`, stored in `secrets.OPENROUTER_API_KEY` |
-| `jev-provider` | `typesafe` | Jev API provider: `typesafe` or `openrouter` |
-| `jev-model` | Provider default | Empty selects `jev-latest` (TypeSafe) or `typesafe/jev-1.13` (OpenRouter) |
-| `github-token` | `github.token` | Token for PR comments / fix PRs |
-| `mode` | `check` | `check`, `fix`, or `review` |
-| `docs-glob` | `README.md,docs/**/*.md` | Comma-separated globs for documentation files |
-| `chat-model` | `gpt-4.1-mini` | Model for staleness verdicts and rewrites |
-| `embedding-model` | `text-embedding-3-small` | Model for embeddings |
-| `max-sections` | `20` | Cost cap: max doc sections analyzed per run |
-| `fail-on-stale` | `false` | Fail the check when stale docs are found |
-| `reviewer` | — | GitHub username auto-requested for review on fix PRs |
-
+Delete the variable (or set anything else) to turn auto-heal off — no file changes needed. Manual dispatch keeps working either way. Merging the bot's own docs PRs is loop-safe: that diff is docs-only, so the follow-up run exits quietly.
 ### Outputs
 
 | Output | Description |
@@ -352,10 +348,11 @@ commit, then edit its description. Verify there is exactly one triage comment,
 that it follows the current head SHA, and that any documentation comment is
 preserved. This validation requires real GitHub access and a key for the selected Jev provider.
 
-## Limitations (v1)
+Limitations (v1)
 
 - Markdown docs only (`README.md` + `docs/**` by default).
 - Staleness detection is probabilistic — evidence is cited, but always review
   the bot's fix PRs before merging.
 - Fix mode is intended for post-merge correction (push to main or manual
   dispatch); use check mode during PR review.
+- There is now also a review mode used for Jev PR triage, which requires additional API keys and is intended for a different workflow.
