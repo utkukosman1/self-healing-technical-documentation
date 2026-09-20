@@ -1,0 +1,31 @@
+name: DocSentry PR triage
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: docsentry-review-${{ github.repository }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # GITHUB_SHA is trusted default-branch code for pull_request_target.
+      # Never substitute the PR head here or run contributor code in this job.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: ./
+        with:
+          mode: review
+          jev-provider: openrouter
+          openrouter-api-key: ${{ secrets.OPENROUTER_API_KEY }}
